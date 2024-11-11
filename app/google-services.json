@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "510822188672",
+    "project_id": "to-do-list-kids",
+    "storage_bucket": "to-do-list-kids.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510822188672:android:61f58e95450fc32d018865",
+        "android_client_info": {
+          "package_name": "com.example.todolistkids"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "510822188672-1qri8egkpdkj4u8pjasoljta20sam6fv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQi3aYDjdyc6QwpA9pWueKcNQKZD12sFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "510822188672-1qri8egkpdkj4u8pjasoljta20sam6fv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
