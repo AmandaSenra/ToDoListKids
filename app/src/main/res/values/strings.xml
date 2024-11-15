@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">To Do List kids</string>
     <string name="default_web_client_id">510822188672-1qri8egkpdkj4u8pjasoljta20sam6fv.apps.googleusercontent.com</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="checkbox">checkbox</string>
+    <string name="tarefa">Tarefa</string>
 </resources>
