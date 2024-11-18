@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".ToDoApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -35,9 +36,6 @@
             android:exported="true" />
         <activity
             android:name=".Tela6_Menu"
-            android:exported="true" />
-        <activity
-            android:name=".Tela7_NovaTarefa"
             android:exported="true" />
     </application>
 

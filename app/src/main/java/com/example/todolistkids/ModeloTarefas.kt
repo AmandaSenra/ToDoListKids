@@ -1,40 +1,45 @@
 package com.example.todolistkids
 
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.UUID
 
-class ModeloTarefas: ViewModel(){
+class ModeloTarefas(private val reposity: TaskItemReposity): ViewModel(){
 
-    var taskItems = MutableLiveData<MutableList<TaskItem>>()
+    var taskItems: LiveData<List<TaskItem>> = reposity.allTaskItems.asLiveData()
 
-    init{
-        taskItems.value = mutableListOf()
+    fun addTaskItem(newTask: TaskItem) = viewModelScope.launch {
+        reposity.insertTaskItem(newTask)
     }
 
-    fun addTaskItem(newTask: TaskItem){
-        val list = taskItems.value
-        list!!.add(newTask)
-        taskItems.postValue(list)
+    fun updateTaskItem(taskItem: TaskItem) = viewModelScope.launch {
+        reposity.updatetTaskItem(taskItem)
     }
 
-    fun updateTaskItem(id: UUID, nome: String, descricao: String, duracao: LocalTime?){
-        val list = taskItems.value
-        val task = list!!.find { it.id == id } !!
-        task.nome = nome
-        task.descricao = descricao
-        task.duracao = duracao
-        taskItems.postValue(list)
+    fun deleteTaskItem(deltaskItem: TaskItem) = viewModelScope.launch {
+        reposity.deleteTaskItem(deltaskItem)
     }
 
-    fun completado(taskItem: TaskItem){
-        val list = taskItems.value
-        val task = list!!.find { it.id == taskItem.id } !!
-        if (task.completDate == null)
-            task.completDate = LocalDate.now()
-        taskItems.postValue(list)
+    fun setCompleted(taskItem: TaskItem) = viewModelScope.launch {
+        if(!taskItem.isCompleted())
+            taskItem.completedDataString = TaskItem.dateFormatter.format(LocalDate.now())
+        reposity.updatetTaskItem(taskItem)
+    }
+}
+
+class TaskItemModelFactory(private val reposity: TaskItemReposity): ViewModelProvider.Factory{
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ModeloTarefas::class.java))
+            return ModeloTarefas(reposity) as T
+
+        throw IllegalArgumentException("Unknow class for View Model")
     }
 }

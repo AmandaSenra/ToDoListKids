@@ -81,7 +81,7 @@ class Tela4_CriarConta : AppCompatActivity() {
         if (userId != null) {
             // Estrutura dos dados do usuário
             val userData = hashMapOf(
-                "nome" to nome,
+                "name" to nome,
                 "email" to email,
                 "dataNascimento" to aniversario
             )

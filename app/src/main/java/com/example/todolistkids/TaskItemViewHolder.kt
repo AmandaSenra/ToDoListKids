@@ -14,7 +14,7 @@ class TaskItemViewHolder(
 {
     val timeFormat = DateTimeFormatter.ofPattern("HH:mm")
     fun bindTaskItem(taskItem: TaskItem){
-        binding.name.text = taskItem.nome
+        binding.name.text = taskItem.name
 
         if(taskItem.isCompleted()){
             binding.name.paintFlags = Paint.STRIKE_THRU_TEXT_FLAG
@@ -31,8 +31,8 @@ class TaskItemViewHolder(
             clickListener.editTaskItem(taskItem)
         }
 
-        if(taskItem.duracao != null)
-            binding.dueTime.text = timeFormat.format(taskItem.duracao)
+        if(taskItem.dueTime() != null)
+            binding.dueTime.text = timeFormat.format(taskItem.dueTime())
         else
             binding.dueTime.text = ""
     }

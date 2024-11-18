@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -25,13 +26,14 @@ class Tela5_Home : AppCompatActivity(), TaskItemClickListener {
     private lateinit var dataText: TextView
     private lateinit var calendario: ImageView
     private lateinit var binding: ActivityTela5HomeBinding
-    private lateinit var modeloTarefas: ModeloTarefas
+    private val modeloTarefas: ModeloTarefas by viewModels {
+        TaskItemModelFactory((application as ToDoApplication).reposity)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityTela5HomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        modeloTarefas = ViewModelProvider(this).get(ModeloTarefas::class.java)
         binding.novaTarefaBotao.setOnClickListener{
             Fragment1_NovaPlanilhaTarefas(null).show(supportFragmentManager, "TagNovaTarefa")
         }
@@ -86,7 +88,7 @@ class Tela5_Home : AppCompatActivity(), TaskItemClickListener {
     }
 
     override fun completeTaskItem(taskItem: TaskItem) {
-        modeloTarefas.completado(taskItem)
+        modeloTarefas.setCompleted(taskItem)
     }
 
     // Função para atualizar o TextView com a data desejada

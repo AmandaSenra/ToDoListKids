@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     id("com.google.gms.google-services")
     id("kotlin-parcelize")
+    id("kotlin-kapt")
 }
 
 android {
@@ -58,4 +59,11 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-auth:22.1.1")
     implementation ("com.google.android.gms:play-services-auth:20.7.0")
+    implementation(libs.room.ktx)
+    implementation(libs.room.runtime)
+    kapt(libs.room.compiler)
+    implementation(libs.lifecycle.livedata.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.activity.ktx)
+    implementation(libs.fragment.ktx)
 }
