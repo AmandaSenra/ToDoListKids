@@ -5,38 +5,30 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.todolistkids.databinding.ActivityTela5HomeBinding
+import androidx.lifecycle.lifecycleScope
+import com.example.todolistkids.navegacao.NavegacaoTarefas
+import com.example.todolistkids.ui.telas.exibir.ModeloVizualizacaoExibir
+import com.example.todolistkids.ui.theme.ToDoListKidsTheme
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class Tela5_Home : AppCompatActivity(), TaskItemClickListener {
-
+class Tela5_Home : AppCompatActivity() {
     private lateinit var dataText: TextView
     private lateinit var calendario: ImageView
-    private lateinit var binding: ActivityTela5HomeBinding
-    private val modeloTarefas: ModeloTarefas by viewModels {
-        TaskItemModelFactory((application as ToDoApplication).reposity)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityTela5HomeBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.novaTarefaBotao.setOnClickListener{
-            Fragment1_NovaPlanilhaTarefas(null).show(supportFragmentManager, "TagNovaTarefa")
-        }
+        setContentView(R.layout.activity_tela5_home)
 
         // Configura para a cor de fundo preencher a barra de notificações
         window.decorView.systemUiVisibility = (
@@ -50,9 +42,6 @@ class Tela5_Home : AppCompatActivity(), TaskItemClickListener {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        setRecyclerView()
-
 
         dataText = findViewById(R.id.data)
         calendario = findViewById(R.id.calendario)
@@ -71,25 +60,21 @@ class Tela5_Home : AppCompatActivity(), TaskItemClickListener {
             val intent = Intent(this, Tela6_Menu::class.java)
             startActivity(intent)
         }
-    }
 
-    private fun setRecyclerView() {
-        val telaTela5_Home = this
-        modeloTarefas.taskItems.observe(this){
-           binding.todolistRecyclerView.apply {
-               layoutManager =  LinearLayoutManager(applicationContext)
-               adapter = TaskItemAdapter(it, telaTela5_Home)
-           }
+
+        // Configurar o ComposeView para exibir o NavHost
+        val composeNavHost: androidx.compose.ui.platform.ComposeView = findViewById(R.id.composeNavHost)
+        composeNavHost.setViewCompositionStrategy(
+            ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+        )
+
+        composeNavHost.setContent {
+            ToDoListKidsTheme {
+                NavegacaoTarefas()
+            }
         }
     }
 
-    override fun editTaskItem(taskItem: TaskItem) {
-        Fragment1_NovaPlanilhaTarefas(taskItem).show(supportFragmentManager, "TagNovaTarefa")
-    }
-
-    override fun completeTaskItem(taskItem: TaskItem) {
-        modeloTarefas.setCompleted(taskItem)
-    }
 
     // Função para atualizar o TextView com a data desejada
     private fun atualizarDataExibida(data: Date) {
@@ -132,7 +117,6 @@ class Tela5_Home : AppCompatActivity(), TaskItemClickListener {
             dia
         )
         datePickerDialog.show()
-
 
     }
 
