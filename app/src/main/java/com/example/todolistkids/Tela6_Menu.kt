@@ -15,24 +15,28 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.Manifest
+import android.app.Activity
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
+import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 
 class Tela6_Menu : AppCompatActivity() {
-    // Defina um código de requisição para identificar a resposta
-    private val PICK_IMAGE_REQUEST = 1
     private lateinit var auth: FirebaseAuth
     private lateinit var firestore: FirebaseFirestore
     private lateinit var idadeTextView: TextView
     private lateinit var nomeTextView: TextView
     private lateinit var editnome: TextView
+    private lateinit var imageView2: ImageView
+    private lateinit var editfoto: TextView
+    private val PICK_IMAGE_REQUEST = 1 //Abrir Galeria (Solicitação de permissão)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,10 +47,13 @@ class Tela6_Menu : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         firestore = FirebaseFirestore.getInstance()
 
-        // Encontre o TextView que exibirá a idade e nome
+        // Referências aos TextViews
         idadeTextView = findViewById(R.id.idade)
         nomeTextView = findViewById(R.id.exibirnomebanco)
         editnome = findViewById(R.id.nome)
+        imageView2 = findViewById(R.id.imageView2)
+        editfoto = findViewById(R.id.editfoto)
+
 
         // Ajuste para a interface com barras do sistema
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.tela6)) { v, insets ->
@@ -60,36 +67,16 @@ class Tela6_Menu : AppCompatActivity() {
             mostrarDialogEditarNome()
         }
 
+        // Configurar clique para abrir a galeria
+        editfoto.setOnClickListener {
+            abrirGaleria()
+        }
+
         // Carregar a idade e nome do usuário logado
         carregarIdade()
         carregarNome()
+        carregarFotoUsuario()
 
-        // Inicialize a variável editfoto
-        val editfoto = findViewById<TextView>(R.id.editfoto)
-
-        // Defina uma imagem padrão logo ao iniciar a tela
-        val imageView2 = findViewById<ImageView>(R.id.imageView2)
-        imageView2.setImageResource(R.drawable.padrao)
-
-        // Clique no TextView para abrir a galeria
-        editfoto.setOnClickListener {
-            // Verifique se a permissão foi concedida antes de abrir a galeria
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                // Se não, solicite a permissão
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    1
-                )
-            } else {
-                // Se a permissão já foi concedida, abra a galeria
-                openGallery()
-            }
-        }
 
         //Intent para a logo retornar a tela home
         val logo = findViewById<ImageView>(R.id.logo2)
@@ -99,7 +86,7 @@ class Tela6_Menu : AppCompatActivity() {
             finish()
         }
 
-        //Intent para o hamburguer retornar a tela home
+        //Intent para o hamburguer retornar a tela menu
         val hamburguer = findViewById<ImageView>(R.id.hamburguer)
         hamburguer.setOnClickListener {
             val intent = Intent(this, Tela6_Menu::class.java)
@@ -260,47 +247,75 @@ class Tela6_Menu : AppCompatActivity() {
         return 0
     }
 
-
-    // Método para abrir a galeria
-    private fun openGallery() {
+    // Função para abrir a galeria
+    private fun abrirGaleria() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        intent.type = "image/*" // Para selecionar apenas imagens
         startActivityForResult(intent, PICK_IMAGE_REQUEST)
     }
 
-    // Método que recebe o resultado da galeria
+    // Função chamada após a seleção da foto
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
-            // Obtenha o URI da imagem selecionada
-            val selectedImageUri: Uri = data.data!!
-
-            // Atualize a imagem no ImageView com a imagem escolhida
-            val imageView = findViewById<ImageView>(R.id.imageView2)
-            imageView.setImageURI(selectedImageUri) // Exibe a imagem no ImageView
+        if (resultCode == Activity.RESULT_OK && requestCode == PICK_IMAGE_REQUEST) {
+            val imageUri = data?.data
+            imageView2.setImageURI(imageUri) // Exibe a imagem no ImageView
+            salvarFotoNoFirebase(imageUri)  // Salva a imagem no Firebase Storage
         }
     }
 
-    // Tratar a resposta da permissão em tempo de execução
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permissão concedida, abra a galeria
-                openGallery()
-            } else {
-                // Permissão negada, você pode mostrar uma mensagem de aviso ou outro comportamento
-                Toast.makeText(
-                    this,
-                    "Permissão negada! Não é possível acessar a galeria.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+    // Função para salvar a foto no Firebase Storage
+    private fun salvarFotoNoFirebase(imageUri: Uri?) {
+        val userId = auth.currentUser?.uid
+        if (userId != null && imageUri != null) {
+            val storageRef = FirebaseStorage.getInstance().reference
+            val imageRef = storageRef.child("usuarios/$userId/fotoPerfil.jpg") // Define o caminho no Storage
+
+            imageRef.putFile(imageUri)
+                .addOnSuccessListener {
+                    imageRef.downloadUrl.addOnSuccessListener { uri ->
+                        // Salvar a URL da imagem no Firestore
+                        salvarUrlFotoNoFirestore(uri.toString())
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Erro ao salvar a imagem: ${e.message}", Toast.LENGTH_LONG).show()
+                }
         }
     }
+
+    // Função para salvar a URL da foto no Firestore
+    private fun salvarUrlFotoNoFirestore(fotoUrl: String) {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            val userRef = firestore.collection("usuarios").document(userId)
+            userRef.update("fotoPerfil", fotoUrl)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Foto atualizada com sucesso", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Erro ao atualizar a foto: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+        }
+    }
+
+    // Função para carregar a foto do usuário do Firestore (caso já tenha sido salva)
+    private fun carregarFotoUsuario() {
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            val userRef = firestore.collection("usuarios").document(userId)
+            userRef.get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val fotoUrl = documentSnapshot.getString("fotoPerfil")
+                    if (fotoUrl != null) {
+                        Glide.with(this)
+                            .load(fotoUrl)  // Usa Glide para carregar a imagem da URL
+                            .into(imageView2)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Erro ao carregar a foto: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+        }
+    }
+
 }
-

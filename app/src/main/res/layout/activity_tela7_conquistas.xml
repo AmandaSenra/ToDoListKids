@@ -77,7 +77,7 @@
         app:layout_constraintHorizontal_bias="0.481"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/minhasconquistas2"
-        app:layout_constraintVertical_bias="0.002"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/conquista" />
 
     <TextView
@@ -92,10 +92,10 @@
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.486"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.569" />
+        app:layout_constraintVertical_bias="0.542" />
 
     <TextView
         android:id="@+id/voceTem"
@@ -109,14 +109,15 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.491"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.683" />
+        app:layout_constraintVertical_bias="0.621" />
 
     <Button
-        android:id="@+id/button"
-        android:layout_width="158dp"
-        android:layout_height="55dp"
+        android:id="@+id/resgatar"
+        android:layout_width="205dp"
+        android:layout_height="56dp"
         android:layout_marginBottom="128dp"
         android:backgroundTint="#000000"
         android:fontFamily="casual"
@@ -128,8 +129,26 @@
         app:cornerRadius="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.509"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/voceTem"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintVertical_bias="0.541" />
+
+    <Button
+        android:id="@+id/doar"
+        android:layout_width="205dp"
+        android:layout_height="56dp"
+        android:backgroundTint="#000000"
+        android:fontFamily="casual"
+        android:text="Doar 1 estrela"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:cornerRadius="5dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/resgatar"
+        app:layout_constraintVertical_bias="0.128" />
 </androidx.constraintlayout.widget.ConstraintLayout>
