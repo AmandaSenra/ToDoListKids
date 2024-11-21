@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FAFAD2"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:layout_marginBottom="10dp">
+
+    <ImageView
+    android:id="@+id/iconUsuario"
+    android:layout_width="40dp"
+    android:layout_height="40dp"
+    android:src="@drawable/userr"
+    android:layout_gravity="center_vertical"
+    android:layout_marginEnd="10dp"/>
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/nomeAmigo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:fontFamily="casual"
+        android:text="Nome do Amigo"
+        android:textColor="#090909"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+
+    <ImageView
+        android:id="@+id/iconDelete"
+        android:layout_width="37dp"
+        android:layout_height="37dp"
+        android:layout_marginStart="8dp"
+        android:padding="4dp"
+        android:src="@drawable/lixo" />
+
+</LinearLayout>

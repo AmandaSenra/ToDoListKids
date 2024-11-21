@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Primeira animação: da posição inicial até 180 graus -->
+    <rotate
+        android:fromDegrees="0"
+        android:toDegrees="180"
+        android:duration="800"
+        android:interpolator="@android:anim/linear_interpolator"
+        android:pivotX="50%"
+        android:pivotY="50%" />
+
+    <!-- Segunda animação: da posição 180 até 360 graus -->
+    <rotate
+        android:fromDegrees="180"
+        android:toDegrees="360"
+        android:duration="800"
+        android:interpolator="@android:anim/linear_interpolator"
+        android:pivotX="50%"
+        android:pivotY="50%" />
+</set>

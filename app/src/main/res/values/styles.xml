@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Estilo customizado para o AlertDialog -->
+    <style name="CustomAlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <item name="android:background">#FAFAD2</item> <!-- Fundo do diálogo -->
+        <item name="android:fontFamily">casual</item> <!-- Fonte personalizada -->
+        <item name="buttonBarPositiveButtonStyle">@style/PositiveButton</item>
+        <item name="buttonBarNegativeButtonStyle">@style/NegativeButton</item>
+    </style>
+
+    <!-- Estilo para o botão Salvar -->
+    <style name="PositiveButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">#77C277</item> <!-- Verde -->
+    </style>
+
+    <!-- Estilo para o botão Cancelar -->
+    <style name="NegativeButton" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">#FF0000</item> <!-- Vermelho -->
+    </style>
+</resources>

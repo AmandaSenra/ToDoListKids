@@ -34,11 +34,18 @@
             android:name=".Tela5_Home"
             android:exported="true" />
         <activity
-            android:name=".MainActivity"
-            android:exported="true" />
-        <activity
             android:name=".Tela6_Menu"
             android:exported="true" />
+        <activity
+            android:name=".Tela7_Conquistas"
+            android:exported="true" />
+        <activity
+            android:name=".Tela8_Amigos"
+            android:exported="true" />
+        <activity
+            android:name=".Tela9_Historico"
+            android:exported="true" />
     </application>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
 </manifest>
