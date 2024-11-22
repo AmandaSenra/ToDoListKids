@@ -1,7 +1,6 @@
 package com.example.todolistkids
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -10,19 +9,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.Manifest
 import android.app.Activity
-import android.widget.Button
+import android.graphics.BitmapFactory
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import com.bumptech.glide.Glide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -75,52 +71,38 @@ class Tela6_Menu : AppCompatActivity() {
         // Carregar a idade e nome do usuário logado
         carregarIdade()
         carregarNome()
-        carregarFotoUsuario()
+        configurarIntents()
+        carregarFotoPerfil()
+        criarConta()
+    }
 
-
-        //Intent para a logo retornar a tela home
-        val logo = findViewById<ImageView>(R.id.logo2)
-        logo.setOnClickListener {
-            val intent = Intent(this, Tela5_Home::class.java)
-            startActivity(intent)
-            finish()
+    private fun configurarIntents() {
+        findViewById<ImageView>(R.id.logo2).setOnClickListener {
+            startActivity(Intent(this, Tela5_Home::class.java))
         }
 
-        //Intent para o hamburguer retornar a tela menu
-        val hamburguer = findViewById<ImageView>(R.id.hamburguer)
-        hamburguer.setOnClickListener {
-            val intent = Intent(this, Tela6_Menu::class.java)
-            startActivity(intent)
-            finish()
+        findViewById<ImageView>(R.id.hamburguer).setOnClickListener {
+            startActivity(Intent(this, Tela6_Menu::class.java))
         }
 
-        //Itent para deslogar do app e ir para tela de login
-        val sair = findViewById<TextView>(R.id.sair)
-        sair.setOnClickListener {
-            FirebaseAuth.getInstance().signOut() // Desloga o usuário
+        findViewById<TextView>(R.id.sair).setOnClickListener {
+            FirebaseAuth.getInstance().signOut()
             Toast.makeText(this, "Deslogado com sucesso!", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, Tela3_Login::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+            startActivity(Intent(this, Tela3_Login::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
         }
 
-        //Intent para ir para tela de conquistas
-        val conquista = this.findViewById<TextView>(R.id.minhasconquistas)
-        conquista.setOnClickListener {
-            val intent = Intent(this, Tela7_Conquistas::class.java)
-            startActivity(intent)
+        findViewById<TextView>(R.id.minhasconquistas).setOnClickListener {
+            startActivity(Intent(this, Tela7_Conquistas::class.java))
         }
-        //Intent para ir para tela de amigos
-        val amigo = this.findViewById<TextView>(R.id.meusamigos)
-        amigo.setOnClickListener {
-            val intent = Intent(this, Tela8_Amigos::class.java)
-            startActivity(intent)
+
+        findViewById<TextView>(R.id.meusamigos).setOnClickListener {
+            startActivity(Intent(this, Tela8_Amigos::class.java))
         }
-        //Intent para ir para tela de históricos
-        val historico = this.findViewById<TextView>(R.id.resgate)
-        historico.setOnClickListener {
-            val intent = Intent(this, Tela9_Historico::class.java)
-            startActivity(intent)
+
+        findViewById<TextView>(R.id.resgate).setOnClickListener {
+            startActivity(Intent(this, Tela9_Historico::class.java))
         }
     }
 
@@ -247,7 +229,7 @@ class Tela6_Menu : AppCompatActivity() {
         return 0
     }
 
-    // Função para abrir a galeria
+    // Função para abrir a galeria e selecionar a foto
     private fun abrirGaleria() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(intent, PICK_IMAGE_REQUEST)
@@ -258,64 +240,77 @@ class Tela6_Menu : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == PICK_IMAGE_REQUEST) {
             val imageUri = data?.data
-            imageView2.setImageURI(imageUri) // Exibe a imagem no ImageView
-            salvarFotoNoFirebase(imageUri)  // Salva a imagem no Firebase Storage
+            imageUri?.let {
+                imageView2.setImageURI(it) // Exibe a imagem selecionada na ImageView
+                salvarFotoLocal(it)        // Salva a imagem localmente no dispositivo
+            }
         }
     }
 
-    // Função para salvar a foto no Firebase Storage
-    private fun salvarFotoNoFirebase(imageUri: Uri?) {
-        val userId = auth.currentUser?.uid
-        if (userId != null && imageUri != null) {
-            val storageRef = FirebaseStorage.getInstance().reference
-            val imageRef = storageRef.child("usuarios/$userId/fotoPerfil.jpg") // Define o caminho no Storage
+    // Função para salvar a foto local com o nome exclusivo para o usuário (usando UID do Firebase)
+    private fun salvarFotoLocal(uri: Uri) {
+        val inputStream = contentResolver.openInputStream(uri)
 
-            imageRef.putFile(imageUri)
-                .addOnSuccessListener {
-                    imageRef.downloadUrl.addOnSuccessListener { uri ->
-                        // Salvar a URL da imagem no Firestore
-                        salvarUrlFotoNoFirestore(uri.toString())
+        // Cria um arquivo com o nome exclusivo para o usuário (usando o UID do Firebase)
+        val file = File(filesDir, "foto_perfil_${auth.currentUser?.uid}.jpg")
+        val outputStream = FileOutputStream(file)
+
+        // Copia os dados da imagem para o arquivo
+        inputStream?.copyTo(outputStream)
+        inputStream?.close()
+        outputStream.close()
+
+        // Salva o nome do arquivo no Firestore, não a URL
+        val userId = auth.currentUser?.uid
+        userId?.let {
+            val usuarioRef = firestore.collection("usuarios").document(userId)
+            usuarioRef.update("fotoPerfil", file.name) // Salva apenas o nome do arquivo no Firestore
+        }
+    }
+
+    // Função para carregar a foto de perfil do usuário (usando o nome salvo no Firestore)
+    private fun carregarFotoPerfil() {
+        // Obtém o ID do usuário logado
+        val userId = auth.currentUser?.uid
+        userId?.let {
+            // Busca o nome do arquivo da foto no Firestore
+            val usuarioRef = firestore.collection("usuarios").document(userId)
+            usuarioRef.get().addOnSuccessListener { document ->
+                val nomeFoto = document.getString("fotoPerfil") // Recupera o nome do arquivo da foto
+
+                if (!nomeFoto.isNullOrEmpty()) {
+                    // Cria um arquivo a partir do nome salvo no Firestore
+                    val file = File(filesDir, nomeFoto)
+
+                    // Se o arquivo existe, carrega e exibe a imagem
+                    if (file.exists()) {
+                        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        imageView2.setImageBitmap(bitmap) // Exibe a imagem na ImageView
+                    } else {
+                        // Se o arquivo não for encontrado, exibe a imagem padrão
+                        imageView2.setImageResource(R.drawable.padrao)
                     }
+                } else {
+                    // Se não houver foto, exibe a imagem padrão
+                    imageView2.setImageResource(R.drawable.padrao)
                 }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Erro ao salvar a imagem: ${e.message}", Toast.LENGTH_LONG).show()
-                }
+            }
         }
     }
 
-    // Função para salvar a URL da foto no Firestore
-    private fun salvarUrlFotoNoFirestore(fotoUrl: String) {
+    // Função para exibir a imagem padrão ao criar uma nova conta
+    private fun criarConta() {
         val userId = auth.currentUser?.uid
-        if (userId != null) {
-            val userRef = firestore.collection("usuarios").document(userId)
-            userRef.update("fotoPerfil", fotoUrl)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Foto atualizada com sucesso", Toast.LENGTH_SHORT).show()
+        userId?.let {
+            val usuarioRef = firestore.collection("usuarios").document(userId)
+
+            // Verifica se o campo "fotoPerfil" existe ou está vazio
+            usuarioRef.get().addOnSuccessListener { document ->
+                if (document.getString("fotoPerfil") == null) {
+                    // Se não houver foto, salva o nome de um arquivo padrão
+                    usuarioRef.update("fotoPerfil", "foto_perfil_padrao.jpg")
                 }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Erro ao atualizar a foto: ${e.message}", Toast.LENGTH_LONG).show()
-                }
+            }
         }
     }
-
-    // Função para carregar a foto do usuário do Firestore (caso já tenha sido salva)
-    private fun carregarFotoUsuario() {
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            val userRef = firestore.collection("usuarios").document(userId)
-            userRef.get()
-                .addOnSuccessListener { documentSnapshot ->
-                    val fotoUrl = documentSnapshot.getString("fotoPerfil")
-                    if (fotoUrl != null) {
-                        Glide.with(this)
-                            .load(fotoUrl)  // Usa Glide para carregar a imagem da URL
-                            .into(imageView2)
-                    }
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(this, "Erro ao carregar a foto: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-        }
-    }
-
 }

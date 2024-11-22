@@ -1,9 +1,7 @@
 package com.example.todolistkids
 
 import android.app.DatePickerDialog
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -13,12 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.example.todolistkids.navegacao.NavegacaoTarefas
-import com.example.todolistkids.ui.telas.exibir.ModeloVizualizacaoExibir
 import com.example.todolistkids.ui.theme.ToDoListKidsTheme
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -95,10 +89,17 @@ class Tela5_Home : AppCompatActivity() {
 
     // Função para abrir o DatePickerDialog
     private fun abrirCalendario() {
+        // Define o Locale para português (Brasil)
+        val locale = Locale("pt", "BR")
+        val configuracao = resources.configuration
+        configuracao.setLocale(locale)
+        resources.updateConfiguration(configuracao, resources.displayMetrics)
+
         val calendario = Calendar.getInstance()
         val ano = calendario.get(Calendar.YEAR)
         val mes = calendario.get(Calendar.MONTH)
         val dia = calendario.get(Calendar.DAY_OF_MONTH)
+
         // Cria um DatePickerDialog
         val datePickerDialog = DatePickerDialog(
             this,
@@ -113,15 +114,12 @@ class Tela5_Home : AppCompatActivity() {
                 // Atualiza o TextView com a data selecionada
                 atualizarDataExibida(dataSelecionada)
 
-                // Exibir as tarefas para a data selecionada (caso precise)
-                // exibirTarefasParaData(diaSelecionado, mesSelecionado, anoSelecionado)
             },
             ano,
             mes,
             dia
         )
         datePickerDialog.show()
-
     }
 
 }

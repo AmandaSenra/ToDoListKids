@@ -15,11 +15,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FirebaseFirestore
+
 
 class Tela3_Login : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var firestore: FirebaseFirestore
+
+    companion object {
+        private const val RC_SIGN_IN = 9001  // Definindo o código de solicitação para o login com Google
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,8 +39,8 @@ class Tela3_Login : AppCompatActivity() {
             insets
         }
         auth = FirebaseAuth.getInstance()
+        firestore = FirebaseFirestore.getInstance()
 
-        // Configura as opções de login com o Google
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -78,8 +86,7 @@ class Tela3_Login : AppCompatActivity() {
         }
     }
 
-    // Método para gerenciar o resultado do login com Google
-    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API...")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == RC_SIGN_IN) {
@@ -91,9 +98,32 @@ class Tela3_Login : AppCompatActivity() {
                     auth.signInWithCredential(credential)
                         .addOnCompleteListener { authTask ->
                             if (authTask.isSuccessful) {
-                                Toast.makeText(this, "Login com Google realizado com sucesso!", Toast.LENGTH_SHORT).show()
-                                // Redireciona para a tela principal do app
-                                startActivity(Intent(this, Tela5_Home::class.java))
+                                val user = auth.currentUser
+                                val userId = user?.uid
+
+                                if (userId != null) {
+                                    val userRef = firestore.collection("usuarios").document(userId)
+                                    userRef.get().addOnSuccessListener { document: DocumentSnapshot ->
+                                        if (document.exists()) {
+                                            startActivity(Intent(this, Tela5_Home::class.java))
+                                        } else {
+                                            val userData = hashMapOf(
+                                                "name" to it.displayName,
+                                                "email" to it.email,
+                                                "dataNascimento" to "16/07/1998",
+                                                "photoUrl" to it.photoUrl.toString()
+                                            )
+                                            userRef.set(userData)
+                                                .addOnSuccessListener {
+                                                    Toast.makeText(this, "Dados do Google salvos com sucesso!", Toast.LENGTH_SHORT).show()
+                                                    startActivity(Intent(this, Tela5_Home::class.java))
+                                                }
+                                                .addOnFailureListener { e ->
+                                                    Toast.makeText(this, "Erro ao salvar dados: ${e.message}", Toast.LENGTH_LONG).show()
+                                                }
+                                        }
+                                    }
+                                }
                             } else {
                                 Toast.makeText(this, "Falha no login com Google", Toast.LENGTH_SHORT).show()
                             }
@@ -104,9 +134,4 @@ class Tela3_Login : AppCompatActivity() {
             }
         }
     }
-
-    companion object {
-        private const val RC_SIGN_IN = 9001
-    }
-
 }

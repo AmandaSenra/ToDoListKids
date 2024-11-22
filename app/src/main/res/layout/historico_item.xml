@@ -1,0 +1,46 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FAFAD2"
+    android:orientation="horizontal"
+    android:padding="15dp"
+    android:gravity="start|center_vertical"
+    android:layout_marginBottom="10dp">
+
+    <ImageView
+        android:id="@+id/iconHist"
+        android:layout_width="39dp"
+        android:layout_height="34dp"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/historico" />
+
+    <LinearLayout
+        android:layout_width="293dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/historicoData"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="casual"
+            android:gravity="center"
+            android:paddingBottom="4dp"
+            android:text="Dia 21 de Novembro de 2024"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/historicoMensagem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="casual"
+            android:gravity="center"
+            android:text="5 Moedas Resgatadas"
+            android:textColor="@color/black"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+</LinearLayout>

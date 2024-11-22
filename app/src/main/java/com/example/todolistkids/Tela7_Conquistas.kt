@@ -131,8 +131,30 @@ class Tela7_Conquistas : AppCompatActivity() {
 
     private fun realizarDoacao(amigo: String) {
         Toast.makeText(this, "Doação feita para $amigo!", Toast.LENGTH_SHORT).show()
-        // Adicione lógica de doação aqui
+
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+
+            val historicoDoacao = mapOf(
+                "data" to dataAtual,
+                "amigo" to amigo
+            )
+
+            // Salvar no Firestore
+            firestore.collection("usuarios").document(userId).collection("historicoDoacoes")
+                .add(historicoDoacao)
+                .addOnSuccessListener {
+                    Toast.makeText(this, "Histórico de doação salvo com sucesso!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(this, "Erro ao salvar histórico: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+        } else {
+            Toast.makeText(this, "Usuário não autenticado. Não foi possível salvar o histórico.", Toast.LENGTH_SHORT).show()
+        }
     }
+
 
     private fun exibirDialogResgatarEstrelas() {
         val builder = AlertDialog.Builder(this, R.style.CustomAlertDialog)
