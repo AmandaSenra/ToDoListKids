@@ -11,8 +11,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import com.example.todolistkids.dados.TarefaProvedorBancoDados
+import com.example.todolistkids.dados.Tarefa_ImplementReposit
 import com.example.todolistkids.navegacao.NavegacaoTarefas
+import com.example.todolistkids.ui.telas.exibir.ModeloVizualizacaoExibir
 import com.example.todolistkids.ui.theme.ToDoListKidsTheme
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -21,6 +28,7 @@ import java.util.Locale
 class Tela5_Home : AppCompatActivity() {
     private lateinit var dataText: TextView
     private lateinit var calendario: ImageView
+    private lateinit var contadorText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +51,8 @@ class Tela5_Home : AppCompatActivity() {
 
         dataText = findViewById(R.id.data)
         calendario = findViewById(R.id.calendario)
+        contadorText = findViewById(R.id.contador0)
+
 
         // Exibir a data atual do sistema ao iniciar
         exibirDataAtual()
@@ -50,6 +60,25 @@ class Tela5_Home : AppCompatActivity() {
         // Defina a ação ao clicar no ImageView (ícone do calendário)
         calendario.setOnClickListener {
             abrirCalendario()
+        }
+
+        // Inicialize ViewModel para observar as tarefas
+        val context = applicationContext
+        val database = TarefaProvedorBancoDados.provide(context)
+        val repositorio = Tarefa_ImplementReposit(dao = database.TarefaDao)
+        val viewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return ModeloVizualizacaoExibir(repositorio) as T
+            }
+        })[ModeloVizualizacaoExibir::class.java]
+
+        // Observar o contador de tarefas completadas
+        lifecycleScope.launch {
+            viewModel.contarTarefasCompletadas()
+                .collect { completadas ->
+                    contadorText.text = "$completadas"
+                }
         }
 
         // Inicializa  icone Menu
