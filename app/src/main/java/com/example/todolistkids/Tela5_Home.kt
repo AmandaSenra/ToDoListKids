@@ -4,11 +4,13 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.semantics.text
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModel
@@ -19,6 +21,8 @@ import com.example.todolistkids.dados.Tarefa_ImplementReposit
 import com.example.todolistkids.navegacao.NavegacaoTarefas
 import com.example.todolistkids.ui.telas.exibir.ModeloVizualizacaoExibir
 import com.example.todolistkids.ui.theme.ToDoListKidsTheme
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -29,6 +33,7 @@ class Tela5_Home : AppCompatActivity() {
     private lateinit var dataText: TextView
     private lateinit var calendario: ImageView
     private lateinit var contadorText: TextView
+    private var estrelasAnteriores: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,8 +83,28 @@ class Tela5_Home : AppCompatActivity() {
             viewModel.contarTarefasCompletadas()
                 .collect { completadas ->
                     contadorText.text = "$completadas"
+
+                    // Atualizar o campo "estrelas" no Firestore
+                    val userId = FirebaseAuth.getInstance().currentUser?.uid
+                    if (userId != null) {
+                        val firestore = FirebaseFirestore.getInstance()
+                        val userRef = firestore.collection("usuarios").document(userId)
+
+                        userRef.update("estrelas", completadas)
+                            .addOnSuccessListener {
+                                Log.d("Firestore", "Estrelas atualizadas com sucesso.")
+                            }
+                            .addOnFailureListener { e ->
+                                Log.e("Firestore", "Erro ao atualizar estrelas: ${e.message}")
+                            }
+                    }
+
+                    // Atualizar estrelasAnteriores para o próximo ciclo
+                    estrelasAnteriores = completadas
                 }
         }
+
+
 
         // Inicializa  icone Menu
         val menu : ImageView = findViewById(R.id.hamburguer)
@@ -142,7 +167,6 @@ class Tela5_Home : AppCompatActivity() {
 
                 // Atualiza o TextView com a data selecionada
                 atualizarDataExibida(dataSelecionada)
-
             },
             ano,
             mes,

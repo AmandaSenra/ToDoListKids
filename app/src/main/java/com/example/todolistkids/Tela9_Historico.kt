@@ -73,69 +73,59 @@ class Tela9_Historico: AppCompatActivity() {
         val userId = auth.currentUser?.uid
 
         if (userId != null) {
-            val historicoList = mutableListOf<Map<String, Any>>() // Lista para armazenar dados de ambos os históricos
-
             // Define o formato original da data (dd/MM/yyyy)
             val originalFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
             // Define o formato de exibição desejado (d 'de' MMMM 'de' yyyy)
             val displayFormat = SimpleDateFormat(" 'Dia' d 'de' MMMM 'de' yyyy", Locale("pt", "BR"))
 
-            // Busca os resgates
-            firestore.collection("usuarios").document(userId).collection("historicoResgates")
+            // Busca o histórico completo na subcoleção "historico" do usuário
+            firestore.collection("usuarios").document(userId).collection("historico")
                 .get()
-                .addOnSuccessListener { resgates ->
-                    resgates.documents.forEach { document ->
-                        val data = document.getString("data") ?: "Data desconhecida"
-                        val quantidade = document.getLong("quantidadeEstrelas") ?: 0
+                .addOnSuccessListener { snapshot ->
+                    // Verifica se há documentos na subcoleção "historico"
+                    if (snapshot.isEmpty) {
+                        Toast.makeText(this, "Nenhum histórico encontrado.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        snapshot.documents.forEach { document ->
+                            val data = document.getString("data") ?: "Data desconhecida"
+                            val tipo = document.getString("tipo") ?: ""
+                            val detalhes = document.get("detalhes") as? Map<String, Any> ?: emptyMap()
 
-                        // Converte a data do formato original para o formato desejado
-                        val formattedDate = try {
-                            val parsedDate = originalFormat.parse(data)
-                            displayFormat.format(parsedDate)
-                        } catch (e: Exception) {
-                            "Data inválida"
-                        }
+                            // Converte a data do formato original para o formato desejado
+                            val formattedDate = try {
+                                val parsedDate = originalFormat.parse(data)
+                                displayFormat.format(parsedDate)
+                            } catch (e: Exception) {
+                                "Data inválida"
+                            }
 
-                        // Adiciona resgate na lista
-                        historicoList.add(mapOf("mensagem" to "Resgatou $quantidade estrelas.", "data" to formattedDate, "tipo" to "resgate"))
-                    }
-
-                    // Busca as doações
-                    firestore.collection("usuarios").document(userId).collection("historicoDoacoes")
-                        .get()
-                        .addOnSuccessListener { doacoes ->
-                            doacoes.documents.forEach { document ->
-                                val data = document.getString("data") ?: "Data desconhecida"
-                                val amigo = document.getString("amigo") ?: "Amigo desconhecido"
-
-                                // Converte a data do formato original para o formato desejado
-                                val formattedDate = try {
-                                    val parsedDate = originalFormat.parse(data)
-                                    displayFormat.format(parsedDate)
-                                } catch (e: Exception) {
-                                    "Data inválida"
+                            // Verifica o tipo de histórico e prepara a mensagem
+                            val mensagem = when (tipo) {
+                                "resgate" -> {
+                                    val quantidadeEstrelas = (detalhes["quantidadeEstrelas"] as? Long) ?: 0
+                                    "Resgatou $quantidadeEstrelas estrelas."
                                 }
-
-                                // Adiciona doação na lista
-                                historicoList.add(mapOf("mensagem" to "Doou 1 estrela para $amigo.", "data" to formattedDate, "tipo" to "doacao"))
+                                "doacao" -> {
+                                    val amigo = detalhes["amigo"] as? String ?: "Amigo desconhecido"
+                                    val estrelasDoadas = (detalhes["estrelasDoadas"] as? Long) ?: 0
+                                    "Doou $estrelasDoadas estrela para $amigo."
+                                }
+                                else -> "Histórico desconhecido"
                             }
 
-                            // Exibe os dados no layout na ordem original
-                            historicoList.forEach { historico ->
-                                adicionarItemHistorico(historico["mensagem"].toString(), historico["data"].toString())
-                            }
+                            // Adiciona o item ao layout
+                            adicionarItemHistorico(mensagem, formattedDate)
                         }
-                        .addOnFailureListener { e ->
-                            Toast.makeText(this, "Erro ao carregar histórico de doações: ${e.message}", Toast.LENGTH_LONG).show()
-                        }
+                    }
                 }
                 .addOnFailureListener { e ->
-                    Toast.makeText(this, "Erro ao carregar histórico de resgates: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "Erro ao carregar histórico: ${e.message}", Toast.LENGTH_LONG).show()
                 }
         } else {
             Toast.makeText(this, "Usuário não autenticado.", Toast.LENGTH_SHORT).show()
         }
     }
+
 
 
     private fun adicionarItemHistorico(mensagem: String, data: String) {
